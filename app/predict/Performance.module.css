@@ -292,6 +292,16 @@
   transition: opacity 200ms ease-out;
 }
 
+/* Keep the cloud and on-prem cost tiles together without coupling their width
+   to the GPU tile's wider first grid column. */
+.costTilesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: min(100%, 680px);
+  margin-bottom: 24px;
+}
+
 /* Magnify on hover - dim siblings */
 .tilesGrid:hover > div:not(:hover) {
   opacity: 0.85;
@@ -299,6 +309,7 @@
 
 @media (max-width: 1100px) { .tilesGrid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px)  { .tilesGrid { grid-template-columns: 1fr; } }
+@media (max-width: 600px)  { .costTilesGrid { grid-template-columns: 1fr; width: 100%; } }
 
 .flip {
   perspective: 1100px;

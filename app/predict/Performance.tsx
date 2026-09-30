@@ -1651,8 +1651,10 @@ export default function Performance() {
           />
         </div>
         )}
+      </div>
+      )}
 
-        {costingsEnabled && gpuPricePerHour == null && !costings.isLoading && (
+        {testResult && costingsEnabled && gpuPricePerHour == null && !costings.isLoading && (
           <div style={{
             border: '1px solid #d2d2d2', borderRadius: '6px', padding: '14px',
             fontSize: '13px', fontFamily: 'var(--font-mono)', color: '#54585c',
@@ -1663,131 +1665,71 @@ export default function Performance() {
           </div>
         )}
 
-        {costingsEnabled && gpuPricePerHour != null && (
-        <div>
-          <FlipTile
-            front={
-            <>
-              <span className={styles.tileLabel}><DollarSignIcon /> MONTHLY COST</span>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                {/* Cloud pricing tile */}
-                <div style={{
-                  flex: 1,
-                  border: '1px solid #d2d2d2',
-                  borderRadius: '6px',
-                  padding: '14px',
-                  transition: 'transform 200ms ease-out',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.06)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="#ee0000">
-                      <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/>
-                      <circle cx="8" cy="8" r="3"/>
-                    </svg>
-                    <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#ee0000', fontWeight: 600 }}>CLOUD</span>
-                    <Term k="cloudPricing" />
-                  </div>
-                  <div style={{ fontSize: '28px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#151515', marginBottom: '4px' }}>
-                    ${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH) / 1000).toFixed(1)}K/mo
-                  </div>
-                  <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#3c3f42' }}>
-                    {cloudRateLabel && `${cloudRateLabel} · `}${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH * AMORT_MONTHS_5YR) / 1000).toFixed(0)}K over 5yr
-                  </div>
-                </div>
-
-                {/* Self-hosted pricing tile — only when a hardware cost is known,
-                    otherwise a $0 tile would imply self-hosting is free. */}
-                {catalogGpuForPricing && (
-                <div style={{
-                  flex: 1,
-                  border: '1px solid #d2d2d2',
-                  borderRadius: '6px',
-                  padding: '14px',
-                  transition: 'transform 200ms ease-out',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.06)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="#151515">
-                      <rect x="2" y="3" width="12" height="2" rx="1"/>
-                      <rect x="2" y="7" width="12" height="2" rx="1"/>
-                      <rect x="2" y="11" width="12" height="2" rx="1"/>
-                    </svg>
-                    <span style={{ fontSize: '13px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.04em', color: '#151515', fontWeight: 600 }}>SELF-HOSTED</span>
-                    <Term k="selfHosted" />
-                  </div>
-                  <div style={{ fontSize: '28px', fontFamily: 'var(--font-display)', fontWeight: 700, color: '#151515', marginBottom: '4px' }}>
-                    ${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / AMORT_MONTHS_5YR / 1000).toFixed(1)}K/mo
-                  </div>
-                  <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#3c3f42' }}>
-                    5yr amort · ${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / 1000).toFixed(0)}K total
-                  </div>
-                </div>
-                )}
-              </div>
-
-              {/* Cost-difference label — only meaningful when both cloud and
-                  self-hosted costs are known. Names whichever option is cheaper
-                  rather than always claiming self-hosted "saves" (which would show
-                  a negative saving when self-hosted is the pricier option). */}
-              {catalogGpuForPricing && (() => {
-                const cloudMonthly = Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH
-                const selfHostedMonthly = (catalogGpuForPricing.hardware_cost_usd * Math.round(gpus)) / AMORT_MONTHS_5YR
-                const diff = cloudMonthly - selfHostedMonthly
-                const cheaper = diff >= 0 ? 'Self-hosted' : 'Cloud'
-                const color = diff >= 0 ? '#3d7317' : '#8250df'
-                return (
-                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', background: color, borderRadius: '2px' }}></div>
-                    <span style={{ fontSize: '13px', fontFamily: 'var(--font-display)', fontWeight: 600, color }}>
-                      {cheaper} saves ${(Math.abs(diff) / 1000).toFixed(1)}K/mo
-                    </span>
-                  </div>
-                )
-              })()}
-            </>
-          }
-          back={
-            <>
-              <div className={styles.backTitle}>How we calculated this</div>
-              <div className={styles.formula}>
-                <strong style={{ color: '#3c3f42', fontSize: '12px' }}>Cloud:</strong><br />
-                {Math.round(gpus)} GPUs × <span className={styles.em}>${gpuPricePerHour.toFixed(2)}/gpu-hr</span> × <span className={styles.em}>730 hrs</span><br />
-                = <span className={styles.em}>${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH) / 1000).toFixed(1)}K/mo</span><br />
-                <br />
-                {catalogGpuForPricing && (
+        {testResult && costingsEnabled && gpuPricePerHour != null && (
+        <div className={styles.costTilesGrid}>
+          <div data-testid="cloud-cost-tile">
+            <FlipTile
+              front={
                 <>
-                <strong style={{ color: '#3c3f42', fontSize: '12px' }}>Self-hosted:</strong><br />
-                ${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / 1000).toFixed(0)}K ÷ <span className={styles.em}>60 months</span><br />
-                = <span className={styles.em}>${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / AMORT_MONTHS_5YR / 1000).toFixed(1)}K/mo</span><br />
-                <span style={{ fontSize: '11.5px', color: '#3c3f42' }}>(hardware amortization only)</span><br />
-                <br />
-                </>
-                )}
-                <strong style={{ color: '#3c3f42', fontSize: '12px' }}>5-year totals:</strong><br />
-                Cloud: <span className={styles.em}>${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH * AMORT_MONTHS_5YR) / 1000).toFixed(0)}K</span><br />
-                {catalogGpuForPricing && (
-                <>Hardware: <span className={styles.em}>${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / 1000).toFixed(0)}K</span><br /></>
-                )}
-                <br />
-                <div style={{ background: 'rgba(255, 193, 7, 0.1)', padding: '8px', borderRadius: '4px', marginTop: '8px' }}>
-                  <span style={{ fontSize: '11.5px', color: '#995c00', lineHeight: '1.5' }}>
-                    ⚠️ Self-hosted excludes: power (~$X/mo), cooling, staff, networking. Typical full TCO adds 40–80% to this number.
+                  <span className={styles.tileLabel}><DollarSignIcon /> Cloud cost <Term k="cloudPricing" /></span>
+                  <span className={styles.tileValue}>${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH) / 1000).toFixed(1)}K<span className={styles.tileUnit}>/mo</span></span>
+                  <span className={styles.tileSub}>
+                    {cloudRateLabel && `${cloudRateLabel} · `}${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH * AMORT_MONTHS_5YR) / 1000).toFixed(0)}K over 5yr
                   </span>
-                </div>
-              </div>
-            </>
-          }
-        />
+                </>
+              }
+              back={
+                <>
+                  <div className={styles.backTitle}>Cloud cost</div>
+                  <div className={styles.formula}>
+                    {Math.round(gpus)} GPUs × <span className={styles.em}>${gpuPricePerHour.toFixed(2)}/gpu-hr</span> × <span className={styles.em}>730 hrs</span><br />
+                    = <span className={styles.em}>${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH) / 1000).toFixed(1)}K/mo</span><br /><br />
+                    5-year total: <span className={styles.em}>${((Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH * AMORT_MONTHS_5YR) / 1000).toFixed(0)}K</span>
+                  </div>
+                </>
+              }
+            />
+          </div>
+
+          {catalogGpuForPricing && (
+          <div data-testid="self-hosted-cost-tile">
+            <FlipTile
+              front={
+                <>
+                  <span className={styles.tileLabel}><MemoryIcon /> On-prem cost <Term k="selfHosted" /></span>
+                  <span className={styles.tileValue}>${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / AMORT_MONTHS_5YR / 1000).toFixed(1)}K<span className={styles.tileUnit}>/mo</span></span>
+                  <span className={styles.tileSub}>
+                    5yr amort · ${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / 1000).toFixed(0)}K total
+                  </span>
+                  {(() => {
+                    const cloudMonthly = Math.round(gpus) * gpuPricePerHour * HOURS_PER_MONTH
+                    const selfHostedMonthly = (catalogGpuForPricing.hardware_cost_usd * Math.round(gpus)) / AMORT_MONTHS_5YR
+                    const diff = cloudMonthly - selfHostedMonthly
+                    const cheaper = diff >= 0 ? 'On-prem' : 'Cloud'
+                    const color = diff >= 0 ? '#3d7317' : '#8250df'
+                    return (
+                      <span style={{ fontSize: '11.5px', fontFamily: 'var(--font-display)', fontWeight: 600, color, marginTop: '8px' }}>
+                        {cheaper} saves ${(Math.abs(diff) / 1000).toFixed(1)}K/mo
+                      </span>
+                    )
+                  })()}
+                </>
+              }
+              back={
+                <>
+                  <div className={styles.backTitle}>On-prem cost</div>
+                  <div className={styles.formula}>
+                    ${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / 1000).toFixed(0)}K ÷ <span className={styles.em}>60 months</span><br />
+                    = <span className={styles.em}>${(catalogGpuForPricing.hardware_cost_usd * Math.round(gpus) / AMORT_MONTHS_5YR / 1000).toFixed(1)}K/mo</span><br /><br />
+                    Hardware only. Excludes power, cooling, staff, and networking.
+                  </div>
+                </>
+              }
+            />
+          </div>
+          )}
         </div>
         )}
-      </div>
-      )}
 
       {/* ---------- Estimated serving performance ---------- */}
       {testResult && testResult.performance && (

@@ -6,13 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { InferenceConfigResult } from '@/lib/gpu-math/inference-config';
 
 vi.mock('@/contexts/SettingsContext', () => ({
-  useSettings: () => ({
-    hydrated: true,
-    hfToken: '',
-    defaultModel: 'settings/default-model',
-    inferenceBackend: 'vllm',
-    backendVersion: 'latest',
-  }),
+  useSettings: vi.fn(),
 }));
 
 vi.mock('@/lib/app-config', async (importOriginal) => {
@@ -38,6 +32,42 @@ vi.mock('@/lib/hooks/useCatalog', () => ({
   }),
 }));
 
+vi.mock('@/lib/hooks/useCostings', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/hooks/useCostings')>();
+  return {
+    ...actual,
+    useCostings: vi.fn(() => ({
+      models: [],
+      gpuCloudRates: new Map([
+        ['h100_sxm', {
+          'aws.us-east-1': {
+            on_demand: 2,
+            reserved_1yr: null,
+            reserved_3yr: null,
+            spot_median: null,
+            rate_basis: 'gpu_hour',
+          },
+        }],
+      ]),
+      gpuHardwareCosts: new Map([
+        ['h100_sxm', {
+          new_usd: 30000,
+          new_usd_low: null,
+          new_usd_high: null,
+          indicative: true,
+          source_label: 'test',
+          source_url: null,
+          source_date: null,
+        }],
+      ]),
+      health: null,
+      modelsUpdatedAt: null,
+      modelsStale: false,
+      isLoading: false,
+      error: null,
+    })),
+  };
+});
 vi.mock('@/lib/api/estimate-adapter', () => ({
   fetchEstimateAsInferenceResult: vi.fn(),
   EstimateError: class EstimateError extends Error {},
@@ -84,10 +114,29 @@ vi.mock('@/components/ui/InfoStrip', () => ({
 
 import Performance from './Performance';
 import { fetchEstimateAsInferenceResult } from '@/lib/api/estimate-adapter';
+import { useSettings } from '@/contexts/SettingsContext';
 
 let container: HTMLDivElement;
 let root: ReturnType<typeof createRoot>;
 
+const makeSettings = (costingsEnabled: boolean): ReturnType<typeof useSettings> => ({
+  hydrated: true,
+  defaultModel: 'settings/default-model',
+  testedModels: [],
+  hfToken: '',
+  inferenceBackend: 'vllm',
+  backendVersion: 'latest',
+  costingsEnabled,
+  preferredCloudProvider: 'aws.us-east-1',
+  pricingSource: 'aicostings',
+  setDefaultModel: vi.fn(),
+  setHfToken: vi.fn(),
+  setInferenceBackend: vi.fn(),
+  setBackendVersion: vi.fn(),
+  setCostingsEnabled: vi.fn(),
+  setPreferredCloudProvider: vi.fn(),
+  setPricingSource: vi.fn(),
+});
 const estimateResult: InferenceConfigResult = {
   memory_analysis: {
     weight_gb: 14,
@@ -138,6 +187,7 @@ const estimateResult: InferenceConfigResult = {
 };
 
 beforeEach(() => {
+  vi.mocked(useSettings).mockReturnValue(makeSettings(false));
   (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
     .IS_REACT_ACT_ENVIRONMENT = true;
   vi.stubGlobal('localStorage', {
@@ -192,7 +242,6 @@ describe('performance page widget handoff', () => {
     expect(model?.value).toBe('settings/default-model');
     expect(gpu?.value).toBe('h200_sxm');
   });
-
   it('renders all serving performance metrics with glossary help', async () => {
     await mountAt('?model=Qwen%2FQwen2.5-7B-Instruct&system=h100_sxm');
 
@@ -211,5 +260,24 @@ describe('performance page widget handoff', () => {
     expect(container.querySelector('[data-term="ttft"]')).not.toBeNull();
     expect(container.querySelector('[data-term="concurrent"]')).not.toBeNull();
     expect(container.querySelector('[data-term="tpot"]')).not.toBeNull();
+  });
+
+  it('renders separate cloud and on-prem cost tiles', async () => {
+    vi.mocked(useSettings).mockReturnValue(makeSettings(true));
+    await mountAt('?model=Qwen%2FQwen2.5-7B-Instruct&system=h100_sxm');
+
+    expect(container.querySelector('[data-testid="cloud-cost-tile"]')).toBeNull();
+    expect(container.querySelector('[data-testid="self-hosted-cost-tile"]')).toBeNull();
+    await act(async () => {
+      const calculate = Array.from(container.querySelectorAll('button'))
+        .find((button) => button.textContent === 'Calculate');
+      calculate?.click();
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    expect(container.querySelector('[data-testid="cloud-cost-tile"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="self-hosted-cost-tile"]')).not.toBeNull();
   });
 });
