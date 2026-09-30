@@ -1806,7 +1806,7 @@ export default function Performance() {
                 <div className={styles.cardBody}>
                   <div className={styles.paramGrid}>
                     <div>
-                      <div className={styles.fieldLabel}>Request latency</div>
+                      <div className={styles.fieldLabel}>Request latency <Term k="requestLatency" /></div>
                       <div style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 700 }}>
                         {(testResult.performance.request_latency_ms / 1000).toFixed(1)}s
                       </div>
@@ -1815,7 +1815,16 @@ export default function Performance() {
                       </div>
                     </div>
                     <div>
-                      <div className={styles.fieldLabel}>Concurrency</div>
+                      <div className={styles.fieldLabel}>TTFT <Term k="ttft" /></div>
+                      <div style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 700 }}>
+                        {testResult.performance.ttft_ms.toFixed(1)} ms
+                      </div>
+                      <div style={{ fontSize: 13, color: '#3c3f42', marginTop: 4 }}>
+                        Time to first token
+                      </div>
+                    </div>
+                    <div>
+                      <div className={styles.fieldLabel}>Concurrency <Term k="concurrent" /></div>
                       <div style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 700 }}>
                         {testResult.performance.concurrency}
                       </div>
@@ -1824,7 +1833,7 @@ export default function Performance() {
                       </div>
                     </div>
                     <div>
-                      <div className={styles.fieldLabel}>TPOT</div>
+                      <div className={styles.fieldLabel}>TPOT <Term k="tpot" /></div>
                       <div style={{ fontFamily: 'var(--mono)', fontSize: 20, fontWeight: 700 }}>
                         {testResult.performance.tpot_ms.toFixed(1)} ms
                       </div>
