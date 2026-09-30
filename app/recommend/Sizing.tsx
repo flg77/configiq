@@ -815,9 +815,20 @@ export default function Sizing() {
                       </>
                     ) : (
                       <>
-                        peak usage = <span className={styles.em}>{result.memory.value.toFixed(1)} {result.memory.unit}</span> per GPU<br />
-                        checked against a single GPU&apos;s HBM<br />
-                        {result.recommendation.gpusPerReplica} GPUs per replica
+                        {result.memory.breakdown && (
+                          <>
+                            weights: <span className={styles.em}>{result.memory.breakdown.weightsGb.toFixed(1)} GB</span><br />
+                            KV cache: <span className={styles.em}>{result.memory.breakdown.kvCacheGb.toFixed(1)} GB</span><br />
+                          </>
+                        )}
+                        peak: <span className={styles.em}>{result.memory.value.toFixed(1)} {result.memory.unit}</span> / GPU<br />
+                        {currentGpuOption?.vramGb != null && (() => {
+                          const headroom = currentGpuOption.vramGb - result.memory.value;
+                          return <>
+                            headroom: <span className={styles.em}>{headroom.toFixed(1)} GB</span><br />
+                          </>;
+                        })()}
+                        {result.recommendation.gpusPerReplica} GPU{result.recommendation.gpusPerReplica === 1 ? '' : 's'} per replica
                       </>
                     )}
                   </div>

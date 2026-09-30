@@ -164,7 +164,7 @@ describe('callRecommend', () => {
     expect(r.throughput.tokensPerSecond).toBe(846.93)
     expect(r.throughput.tokensPerSecondPerGpu).toBe(211.73)
     expect(r.throughput.tokensPerSecondPerUser).toBe(6.67)
-    expect(r.memory).toEqual({ value: 58.61, unit: 'GB' })
+    expect(r.memory).toEqual({ value: 58.61, unit: 'GB', breakdown: null })
     expect(r.metadata.modelPath).toBe('meta-llama/Llama-3.1-70B-Instruct')
     expect(r.metadata.system).toBe('h200_sxm')
     expect(r.metadata.durationMs).toBeGreaterThanOrEqual(0)
@@ -301,7 +301,33 @@ describe('callRecommend', () => {
 
     await callRecommend(VALID_REQUEST)
 
-    expect(mockFetch.mock.calls[0][0]).toBe('https://aisimulators.dev/recommend')
+    expect(mockFetch.mock.calls[0][0]).toBe('https://aisimulators.dev/recommend?include=memory')
+  })
+
+  it('normalizes native memory breakdown bytes when the candidate has no memory metric', async () => {
+    vi.stubGlobal('fetch', mockFetchOk({
+      configs: [{
+        ...EXTERNAL_RESPONSE.configs[0],
+        memory: null,
+        memory_breakdown: {
+          weights_bytes: 4 * 1024 ** 3,
+          activations_bytes: 1 * 1024 ** 3,
+          runtime_overhead_bytes: 0.5 * 1024 ** 3,
+          comm_overhead_bytes: 0,
+          kv_cache_bytes: 2 * 1024 ** 3,
+        },
+      }],
+      chosen_mode: 'agg',
+    }))
+
+    const result = await callRecommend(VALID_REQUEST)
+
+    expect(result.status).toBe('completed')
+    expect((result as RecommendResult).memory).toEqual({
+      value: 7.5,
+      unit: 'GB',
+      breakdown: { weightsGb: 4, kvCacheGb: 2, overheadGb: 1.5 },
+    })
   })
 
   it('sends correct fields in the upstream request', async () => {
