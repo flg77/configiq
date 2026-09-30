@@ -18,7 +18,7 @@ from configiq.systems import load_device_names_from_perf_data, supported_systems
 from fastapi.testclient import TestClient
 
 from tools.api_service import app as app_module
-from tools.api_service.app import app
+from tools.api_service.app import MemoryBreakdown, app
 
 client = TestClient(app)
 
@@ -340,6 +340,23 @@ class TestRecommend:
         cfg = resp.json()["configs"][0]
         assert cfg["memory_breakdown"] is not None
         assert cfg["serving_config"] is None
+
+    @patch("tools.api_service.app._build_memory_breakdown")
+    @patch("tools.api_service.app._run_aisimulate_recommendation")
+    def test_include_memory_populates_peak_memory(self, mock_recommend, mock_breakdown):
+        mock_recommend.return_value = make_mock_recommendation_result()
+        mock_breakdown.return_value = MemoryBreakdown(
+            weights_bytes=4 * 1024 ** 3,
+            activations_bytes=1 * 1024 ** 3,
+            runtime_overhead_bytes=512 * 1024 ** 2,
+            comm_overhead_bytes=0,
+            kv_cache_bytes=2 * 1024 ** 3,
+        )
+
+        resp = client.post("/recommend?include=memory", json=VALID_RECOMMEND_BODY)
+
+        assert resp.status_code == 200
+        assert resp.json()["configs"][0]["memory"] == pytest.approx(7.5)
 
     @patch("tools.api_service.app._run_aisimulate_recommendation")
     def test_include_config_and_memory(self, mock_recommend):

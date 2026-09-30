@@ -943,6 +943,19 @@ def _build_memory_breakdown(
     )
 
 
+def _memory_breakdown_gb(breakdown: MemoryBreakdown | None) -> float | None:
+    if breakdown is None:
+        return None
+    total_bytes = sum((
+        breakdown.weights_bytes,
+        breakdown.activations_bytes,
+        breakdown.runtime_overhead_bytes,
+        breakdown.comm_overhead_bytes,
+        breakdown.kv_cache_bytes,
+    ))
+    return total_bytes / (1024 ** 3)
+
+
 def _common_error_handler(e: Exception, op: str, model_path: str, backend: str, system: str) -> None:
     msg = str(e)
     # aisimulate's recommendation stack uses NoViableParallelConfig when a
@@ -1118,6 +1131,17 @@ def post_recommend(
                         worker.tp, worker.pp or 1, req.isl, req.osl, worker.num_workers or 1,
                         max_seq_len=context_length,
                     )
+            if "memory" in includes and cfg.memory is None:
+                cfg.memory = max(
+                    (
+                        memory_gb
+                        for worker in (cfg.prefill_config, cfg.decode_config)
+                        if worker is not None
+                        for memory_gb in [_memory_breakdown_gb(worker.memory_breakdown)]
+                        if memory_gb is not None
+                    ),
+                    default=None,
+                )
         else:
             if "config" in includes:
                 cfg.serving_config = _build_serving_config(
@@ -1131,6 +1155,8 @@ def post_recommend(
                     cfg.tp or 1, cfg.pp or 1, req.isl, req.osl,
                     cfg.bs or req.target_concurrency or 1, max_seq_len=req.max_seq_len,
                 )
+                if cfg.memory is None:
+                    cfg.memory = _memory_breakdown_gb(cfg.memory_breakdown)
     chosen_mode = "disagg" if configs[0].prefill_config is not None else "agg"
     return RecommendResponse(configs=configs, chosen_mode=chosen_mode)
 

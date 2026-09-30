@@ -71,6 +71,11 @@ export interface RecommendResult {
     /** Worst-case peak memory usage per GPU (GB). Checked against one GPU's HBM. */
     value: number
     unit: 'GB'
+    breakdown: {
+      weightsGb: number
+      kvCacheGb: number
+      overheadGb: number
+    } | null
   }
   metadata: {
     modelPath: string
@@ -219,7 +224,10 @@ export async function callRecommend(
     const signal = options.signal
       ? AbortSignal.any([timeoutSignal, options.signal])
       : timeoutSignal
-    response = await fetch(`${baseUrl}/recommend`, {
+    // Native AISimulators keeps the detailed memory estimate behind the
+    // optional include flag; the sizing result renders that value directly.
+    const recommendUrl = `${baseUrl}/recommend?include=memory`
+    response = await fetch(recommendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -340,6 +348,24 @@ export async function callRecommend(
   const ttftLatencyMs = (best.ttft as number) ?? 0
   const tpotMs = (best.tpot as number) ?? 0
   const requestLatencyMs = (best.request_latency as number) ?? 0
+  const memoryBreakdown = best.memory_breakdown as Record<string, unknown> | undefined
+  const bytes = (field: string): number => {
+    const value = memoryBreakdown?.[field]
+    return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : 0
+  }
+  const memoryBreakdownGb = memoryBreakdown
+    ? {
+        weightsGb: bytes('weights_bytes') / (1024 ** 3),
+        kvCacheGb: bytes('kv_cache_bytes') / (1024 ** 3),
+        overheadGb: (bytes('activations_bytes') + bytes('runtime_overhead_bytes') + bytes('comm_overhead_bytes')) / (1024 ** 3),
+      }
+    : null
+  const memoryFromBreakdown = memoryBreakdown
+    ? (memoryBreakdownGb!.weightsGb + memoryBreakdownGb!.kvCacheGb + memoryBreakdownGb!.overheadGb)
+    : 0
+  const memoryGb = typeof best.memory === 'number' && Number.isFinite(best.memory)
+    ? best.memory
+    : memoryFromBreakdown
 
   const requiredValues = [
     totalGpusNeeded,
@@ -398,8 +424,9 @@ export async function callRecommend(
       tokensPerSecondPerUser: (best.tokens_per_second_per_user as number) ?? 0,
     },
     memory: {
-      value: (best.memory as number) ?? 0,
+      value: memoryGb,
       unit: 'GB',
+      breakdown: memoryBreakdownGb,
     },
     metadata: {
       modelPath: request.model_path,
