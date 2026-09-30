@@ -85,10 +85,10 @@
   margin-bottom: 6px;
 }
 
-/* 3-column parameter grid for Estimated serving performance */
+/* Four-column parameter grid for Estimated serving performance */
 .paramGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
