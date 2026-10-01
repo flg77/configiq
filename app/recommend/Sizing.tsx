@@ -210,7 +210,7 @@ function friendlyErrorHint(code: string | null): string {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function Sizing() {
-  const { hydrated, hfToken, defaultModel: settingsDefaultModel, inferenceBackend, costingsEnabled, pricingSource, preferredCloudProvider } = useSettings();
+  const { hydrated, hfToken, defaultModel: settingsDefaultModel, inferenceBackend, backendVersion, costingsEnabled, pricingSource, preferredCloudProvider } = useSettings();
   const costings = useCostings(costingsEnabled, pricingSource);
   const { modelOptions: catalogModels, gpuOptions: catalogGpus, timeoutSeconds: gatewayTimeout, isLoading: catalogLoading } = useCatalog();
   const MODEL_OPTIONS = catalogModels;
@@ -400,6 +400,7 @@ export default function Sizing() {
       ...(decodeMaxSeqLen != null ? { decode_max_seq_len: decodeMaxSeqLen } : {}),
       ...(requestLatency != null ? { request_latency: requestLatency } : {}),
       backend: inferenceBackend,
+      ...(backendVersion ? { backend_version: backendVersion } : {}),
       // Send the HF config for models AISimulators can't resolve from its catalog.
       ...(needsHfConfig(model, MODEL_OPTIONS) && hfConfig ? { model_config: hfConfig } : {}),
     });
