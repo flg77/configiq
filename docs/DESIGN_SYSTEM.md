@@ -5,33 +5,33 @@ This document defines the repeatable design patterns, component guidelines, and 
 ## Typography System
 
 ### Fonts
-- **Display** (headings, big numbers): "Plus Jakarta Sans"
-- **Body** (descriptions, labels, UI text): "Plus Jakarta Sans"  
-- **Mono** (numbers in context, code, technical labels): "JetBrains Mono"
+- **Display** (headings, big numbers): "Red Hat Display"
+- **Body** (descriptions, labels, UI text): "Red Hat Text"
+- **Mono** (numbers in context, code, technical labels): "Red Hat Mono"
 
-**Critical rule**: JetBrains Mono is for **numbers and technical labels only** — never for long-form text, descriptions, or explanatory copy.
+**Critical rule**: Red Hat Mono is for **numbers and technical labels only** — never for long-form text, descriptions, or explanatory copy.
 
 ### Type Scale
 
 ```css
 /* Page structure */
---page-title: 30px / 700 / -0.01em / Plus Jakarta Sans
---card-title: 18px / 600 / Plus Jakarta Sans
---section-title: 20px / 600 / Plus Jakarta Sans
+--page-title: 26px / 500 / Red Hat Display
+--card-title: 16px / 600 / Red Hat Display
+--section-title: 16px / 600 / Red Hat Display
 
 /* Metrics & data display */
---metric-large: 40px / 700 / -0.01em / Plus Jakarta Sans  /* Hero numbers */
---metric-medium: 28px / 700 / -0.01em / Plus Jakarta Sans /* Scenario values */
---metric-small: 13px / 600 / JetBrains Mono              /* Inline numbers */
+--metric-large: 32px / 700 / Red Hat Display  /* Hero numbers */
+--metric-medium: 26px / 700 / Red Hat Display /* Scenario values */
+--metric-small: 13px / 600 / Red Hat Mono    /* Inline numbers */
 
 /* Body text */
---body: 14px / 400 / 1.55 / Plus Jakarta Sans
---body-large: 15px / 400 / 1.5 / Plus Jakarta Sans
---caption: 13px / 400 / Plus Jakarta Sans
+--body: 14px / 400 / 1.5 / Red Hat Text
+--body-large: 15px / 400 / 1.5 / Red Hat Text
+--caption: 11.5px / 400 / Red Hat Mono
 
 /* Labels */
---label-mono: 12px / 500 / 0.06em / uppercase / JetBrains Mono
---label-sans: 13px / 500 / Plus Jakarta Sans
+--label-mono: 12px / 500 / 0.06em / uppercase / Red Hat Mono
+--label-sans: 13px / 500 / Red Hat Text
 
 /* Minimum allowed */
 --minimum: 11.5px  /* Absolute floor — nothing smaller */
@@ -151,7 +151,7 @@ Use a consistent 4px-based scale:
 .cardTitle {
   font-size: 18px;
   font-weight: 600;
-  font-family: "Plus Jakarta Sans";
+  font-family: "Red Hat Text";
 }
 
 .cardBody {
@@ -338,7 +338,7 @@ const matchesSearch = (keywords: string) => {
 
 ```css
 .conPill {
-  font-family: "JetBrains Mono";
+  font-family: "Red Hat Mono";
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -551,7 +551,7 @@ All text inputs should match:
   border-radius: 4px;
   padding: 7px 11px;
   font-size: 14px;
-  font-family: "Plus Jakarta Sans";
+  font-family: "Red Hat Display";
   background: var(--bg-page);
   box-sizing: border-box;
 }
@@ -573,7 +573,7 @@ All text inputs should match:
 
 ```css
 .fieldLabel {
-  font-family: "JetBrains Mono";
+  font-family: "Red Hat Mono";
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -588,8 +588,9 @@ All text inputs should match:
 ## Usage Guidelines
 
 ### When to Use Each Font
-- **Plus Jakarta Sans**: All UI text, labels, descriptions, headings, body copy
-- **JetBrains Mono**: Numbers in tables/metrics, code snippets, technical uppercase labels ONLY
+- **Red Hat Display**: Headings and prominent metric values
+- **Red Hat Text**: UI text, labels, descriptions, and body copy
+- **Red Hat Mono**: Numbers in tables/metrics, code snippets, and technical uppercase labels ONLY
 
 ### When to Use Each Component
 - **Flip Tile**: Any metric where users might want to see "how it's calculated"
@@ -611,7 +612,6 @@ app/
     page.tsx              # Main component
     [Page].module.css     # Page-specific styles
     [page]Helpers.tsx     # Helper components (FlipTile, Term, etc.)
-    mock[Page].ts         # Mock data for development
 
 components/
   ProductTour/            # Reusable tour component
@@ -633,9 +633,9 @@ components/
   --blue: var(--gc-link, #0066cc);
   
   /* Fonts */
-  --display: "Plus Jakarta Sans", system-ui, sans-serif;
-  --sans: "Plus Jakarta Sans", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --display: "Red Hat Display", system-ui, sans-serif;
+  --sans: "Red Hat Text", system-ui, sans-serif;
+  --mono: "Red Hat Mono", ui-monospace, monospace;
   
   /* Shared values */
   --radius: 6px;

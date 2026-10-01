@@ -2,19 +2,18 @@
 
 ## Overview
 
-ConfigIQ uses semantic versioning with git tags to trigger container builds and version the UI.
+ConfigIQ uses semantic versioning with git tags to version the UI and its
+container images. The GitHub Actions workflow that builds and publishes images
+is not stored in this repository; verify the current automation in the
+deployment/release repository before relying on automatic builds.
 
-The build workflow (`.github/workflows/build.yml`) produces **three container
-images in unison** from a single run — the webapp plus the two backend services
-under `services/` — always sharing the same tags so a given version denotes the
-three that shipped together:
+The deployment contract consists of three container images:
 
 - `ghcr.io/redhat-performance/configiq` (Next.js webapp)
 - `ghcr.io/redhat-performance/aisimulators` (GPU sizing / estimation API)
 - `ghcr.io/redhat-performance/aicostings` (GPU / LLM pricing API)
 
-The matrix runs `fail-fast`, so if any one image fails to build, none of the
-three publish — the tag is all-or-nothing across all three.
+Keep the image versions compatible when releasing the frontend and services.
 
 ## Creating a Release
 
@@ -31,15 +30,11 @@ three publish — the tag is all-or-nothing across all three.
    ```
    The `-s` flag creates a signed tag for release verification. The `-m` flag provides the tag message.
 
-3. **GitHub Actions automatically**:
-   - Triggers the build workflow (`.github/workflows/build.yml`)
-   - Creates the GitHub release and generates categorized release notes from
-     merged pull requests (`.github/workflows/release.yml` and
-     `.github/release.yml`)
-   - Builds **all three** container images (see Overview)
-   - Pushes each to GHCR with matching tags:
-     - `ghcr.io/redhat-performance/{configiq,aisimulators,aicostings}:X.Y.Z` (specific version)
-     - `ghcr.io/redhat-performance/{configiq,aisimulators,aicostings}:latest` (most recent release)
+3. Build, publish, and deploy the images using the active release automation or
+   the deployment repository's documented procedure. If all three services are
+   released together, push matching tags to GHCR:
+   - `ghcr.io/redhat-performance/{configiq,aisimulators,aicostings}:X.Y.Z`
+   - `ghcr.io/redhat-performance/{configiq,aisimulators,aicostings}:latest`
 
 ## Version Display in UI
 
@@ -52,7 +47,7 @@ These are injected at build time by `scripts/inject-build-metadata.js`.
 
 ## Container Tags
 
-All three images carry the same tag set:
+When the three images are released together, they carry the same tag set:
 
 - **`latest`** - Most recent tagged release (release-tracking; the `.xyz` host follows this)
 - **`dev`** - Latest commit from `main` (commit-tracking; the `.dev` host follows this)

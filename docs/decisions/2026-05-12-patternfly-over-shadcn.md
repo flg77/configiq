@@ -5,7 +5,8 @@
 
 ## Decision
 
-Use PatternFly v5 as the only UI and styling system. Do not use Tailwind CSS or shadcn/ui.
+Use PatternFly as the only UI and styling system. The application currently uses
+PatternFly v6. Do not use Tailwind CSS or shadcn/ui.
 
 ## Reasons
 

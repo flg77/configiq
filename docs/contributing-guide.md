@@ -19,7 +19,7 @@ You will also need:
 
 ```bash
 # Clone the repo
-git clone https://github.com/openshift-psap/configiq.git
+git clone https://github.com/redhat-performance/configiq.git
 cd configiq
 
 # Install dependencies (also wires up pre-commit hooks automatically)
@@ -50,24 +50,23 @@ If port 3000 is in use, Next.js will move to 3001. Check the terminal output for
 app/                    Next.js App Router pages
   layout.tsx            Root layout — fonts, PatternFly CSS imports
   page.tsx              Homepage
-  performance/          Performance tool (the main page)
-  recommend/            Recommend sizing tool (stub)
-  gpu-explorer/         GPU Explorer (stub)
-  hybrid-savings/       Hybrid Savings (stub)
-  routing/              Routing Economics (stub)
+  predict/              Predict performance tool
+  recommend/            Recommend sizing tool
+  kv-cache/             KV cache calculator
+  gpu-explorer/         GPU Explorer
+  hybrid-savings/       Hybrid Savings
+  routing/              Routing Economics
+  cluster-cost/         Cluster cost calculator
 
 components/
   layout/
     AppShell.tsx        Top nav bar and PatternFly Page wrapper
 
 lib/
-  gpu-math/             ALL GPU sizing math lives here — not in components
-    models.ts           Model catalog (add new models here)
-    gpus.ts             GPU catalog (add new GPUs here)
-    memory.ts           Memory estimation formulas
-    throughput.ts       Throughput estimation formulas
-    cost.ts             Cost modeling formulas
-    predict-performance.ts Calculation engine for the Predict performance page
+  api/                  AISimulators API clients and response adapters
+  gpu-math/             Legacy static catalogs and historical fallback code
+  pricing/              Pricing data and helpers
+  hooks/                Same-origin catalog and pricing data hooks
   utils/
     format.ts           Number and unit formatting helpers
 
@@ -75,7 +74,9 @@ docs/                   Architecture docs and decision records
 public/                 Static assets
 ```
 
-The most important rule: **GPU math belongs in `lib/gpu-math/`**. Components call those functions and display results — they do not contain formulas.
+The most important rule: **GPU math belongs in AISimulators**. Components call
+the `lib/api/` clients through the same-origin `app/api/` routes and display
+results. Do not add new sizing formulas to `lib/gpu-math/`.
 
 ---
 
@@ -163,8 +164,8 @@ Two engineers working at the same time will sometimes touch the same files. The 
 | File | Why it conflicts |
 |---|---|
 | `app/globals.css` | All shared CSS lives here |
-| `app/predict/page.tsx` | Large file, most active page |
-| `lib/gpu-math/models.ts` | Both engineers may add models |
+| `app/predict/Performance.tsx` | Large file, most active page |
+| `lib/api/` | API contracts and response adapters |
 | `package.json` | Dependency changes |
 
 **Practical rules to avoid painful merges:**
@@ -194,7 +195,7 @@ Follow these so the codebase stays consistent across contributors.
 
 ### PatternFly only for UI
 
-Do not install Tailwind, shadcn/ui, Material UI, or any other component library. PatternFly v5 is the only component library. If you need a UI pattern, check [patternfly.org](https://www.patternfly.org) first.
+Do not install Tailwind, shadcn/ui, Material UI, or any other component library. PatternFly v6 is the only component library. If you need a UI pattern, check [patternfly.org](https://www.patternfly.org) first.
 
 ### Red Hat design system for colors and fonts
 
@@ -202,8 +203,8 @@ Use the established CSS variables — do not introduce arbitrary hex colors:
 
 ```css
 /* Colors */
-var(--rh-red)          /* #ee0000 — brand red */
-var(--rh-red-dark)     /* #be0000 — hover/pressed */
+var(--gc-brand-red)     /* #ee0000 — brand red, logo only */
+var(--gc-link)          /* #0066cc — interactive elements */
 var(--rh-red-50)       /* #ffeaea — selected state backgrounds */
 var(--rh-gray-95)      /* #151515 — primary text */
 var(--rh-gray-50)      /* #6a6e73 — secondary text */
@@ -250,7 +251,7 @@ Before marking a PR ready for review:
 - [ ] `npm run type-check` passes locally
 - [ ] `npm run lint` passes locally
 - [ ] `npm run build` passes locally
-- [ ] New GPU math is in `lib/gpu-math/`, not in a component
+- [ ] New GPU math is in AISimulators, not in a component or `lib/gpu-math/`
 - [ ] No new third-party UI libraries added to `package.json`
 - [ ] All UI text uses sentence case
 - [ ] No hardcoded hex colors — use `--rh-*` CSS variables

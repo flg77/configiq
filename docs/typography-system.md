@@ -24,7 +24,7 @@ This document describes the high-legibility typography and color system now impl
 
 ### **Brand**
 ```css
---brand-red:  #ee0000   /* LOGO ONLY — never text or buttons */
+--gc-brand-red:  #ee0000   /* LOGO ONLY — never text or buttons */
 ```
 
 ### **Status Colors**
@@ -272,7 +272,7 @@ white-space: nowrap;
 ## **What Changed in Code**
 
 ### **`app/globals.css`**
-- ✅ Added color tokens: `--text`, `--text-2`, `--text-3`, `--link`, `--brand-red`
+- ✅ Added color tokens: `--text`, `--text-2`, `--text-3`, `--link`, `--gc-brand-red`
 - ✅ Added status colors: `--success`, `--warn`, `--danger`, `--info`
 - ✅ Added typography utilities: `.type-*` classes
 - ✅ Set base font-size to 15px, line-height 1.5
@@ -343,7 +343,7 @@ white-space: nowrap;
 
 ## **Testing**
 
-Visit: **http://localhost:3003/predict**
+Visit: **http://localhost:3000/predict**
 
 ### **Check:**
 

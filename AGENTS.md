@@ -12,7 +12,7 @@ REST API (server URL set via `AISIMULATORS_GATEWAY_URL`, e.g.
 
 ## Tech stack
 
-- **Framework**: Next.js 15 App Router + TypeScript
+- **Framework**: Next.js 16 App Router + TypeScript
 - **UI**: PatternFly v6 (Red Hat's design system) — no Tailwind, no shadcn
 - **Charts**: PatternFly Victory Charts
 - **Fonts**: Red Hat Display (headings, metrics), Red Hat Text (body), Red Hat Mono (numbers, code, labels)
@@ -51,13 +51,17 @@ app/                    # Next.js App Router pages
   hybrid-savings/       # Hybrid Savings tool
   routing/              # Routing Economics tool
   settings/             # App settings
-  api/                  # Next.js API routes — proxy to AISimulators REST API
+  api/                  # Next.js API routes — same-origin proxies and app APIs
     recommend/          # POST — GPU sizing
     predict/            # POST — GPU performance
     memory/             # POST — memory breakdown
-    gpus/               # GET — GPU catalog + optional live pricing
+    gpus/               # GET — GPU catalog from AISimulators
+    catalog/            # GET — combined AISimulators systems/models/backends catalog
+    estimate/           # POST — compatibility alias for predict
     hf-config/          # GET — Hugging Face model config lookup
     health/             # GET — health check
+    costings/           # Proxies for the aicostings pricing service
+    metrics/             # GET — application metrics
 components/
   layout/
     AppShell.tsx        # Page shell with sidebar nav
@@ -65,7 +69,7 @@ lib/
   gpu-math/             # Legacy client-side GPU sizing — historical/fallback only
   api/                  # AISimulators API clients — source of truth for GPU math
   pricing/              # Cloud GPU pricing data
-  hooks/                # useAicCatalog → /api/catalog, useCostings →
+  hooks/                # useCatalog → /api/catalog, useCostings →
                         # /api/costings/* — both go through same-origin api/
                         # proxies (server-side gateway env), no direct external
                         # fetches from the browser
@@ -74,8 +78,7 @@ lib/
 docs/                   # Architecture docs and ADRs
 public/                 # Static assets
 services/               # Backend Python microservices (FastAPI), built as
-                        # their own container images, released in unison with
-                        # the frontend (see .github/workflows/build.yml)
+                         # their own container images
   configiq-py/          # Shared Python library (import name: configiq):
                         # GPU systems catalog, OpenTelemetry + MCP wiring.
                         # Consumed by the services below as a uv path dependency.
@@ -172,7 +175,7 @@ that must be preserved:
 
 - **Flip tiles** — result tiles flip on click/Enter to reveal formulas. Use
   opacity + rotateY (not bare backface-visibility) for robust cross-browser flip.
-- **Count-up animation** — headline numbers animate from 0 on load with 1500ms
+- **Count-up animation** — headline numbers animate from 0 on load with 750ms
   ease-out timing. Must respect `prefers-reduced-motion`.
 - **Sparkline** — GPU tile shows GPUs-vs-concurrency mini line chart (SVG).
 - **Glossary popovers** — every jargon term (KV cache, max_num_seqs, tensor

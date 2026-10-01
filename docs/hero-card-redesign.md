@@ -347,7 +347,7 @@ Fallbacks:
 
 ## **Live Demo**
 
-Visit: **http://localhost:3003/predict**
+Visit: **http://localhost:3000/predict**
 
 What you should see:
 1. Large hero card on left (50% width) with "1 GPU" in huge text

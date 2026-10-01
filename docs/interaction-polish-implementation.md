@@ -1,4 +1,9 @@
-# Interaction & Polish - Implementation Guide
+# Interaction and polish implementation guide
+
+This guide records the original interaction-polish rollout. The current
+Predict page uses `app/predict/performanceHelpers.tsx` for its result tiles,
+glossary popovers, and 750 ms count-up animation; the standalone components
+listed below remain available for other surfaces.
 
 ## ✅ Components Created
 
@@ -147,18 +152,18 @@ Add to `app/globals.css` or `app/theme.css`:
    ACCORDION ANIMATION
    ═══════════════════════════════════════════ */
 
-.pf-v5-c-accordion__expanded-content {
+.pf-v6-c-accordion__expanded-content {
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.3s ease;
   overflow: hidden;
 }
 
-.pf-v5-c-accordion__expanded-content[hidden] {
+.pf-v6-c-accordion__expanded-content[hidden] {
   max-height: 0;
   opacity: 0;
 }
 
-.pf-v5-c-accordion__expanded-content:not([hidden]) {
+.pf-v6-c-accordion__expanded-content:not([hidden]) {
   max-height: 2000px;
   opacity: 1;
 }

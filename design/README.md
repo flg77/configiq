@@ -1,33 +1,28 @@
 # Predict performance — drop-in UI
 
-A finished, **UI-only** Predict performance page for gpu.calc. Numbers are mock data
-(`mockEstimate.ts`) so this is purely about layout, components, and interaction.
-Wire the real GPU math / HuggingFace fetch behind it later.
+A visual reference and interaction inventory for ConfigIQ's Predict performance
+page. The page is now wired to the AISimulators API and its current implementation
+lives in `app/predict/`.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `Performance.tsx` | Main page composition (PatternFly v5 + the module CSS). |
+| `Performance.tsx` | Main page composition (PatternFly v6 + the module CSS). |
 | `Performance.module.css` | All styling — type scale, flip tiles, scenarios, constraints, drivers, memory bar. Uses `--gc-*` theme tokens with safe fallbacks. |
 | `performanceHelpers.tsx` | `FlipTile`, `Sparkline`, `useCountUp`, and `Term` (the "?" glossary popovers). |
-| `mockEstimate.ts` | Hardcoded sample estimate + the glossary copy lives in helpers. |
+| `performance-prefill.ts` | Query-string handoff used by the embeddable widget. |
 | `preview.html` | **Standalone visual reference** — open in any browser to see the exact target. No build needed. Use this as the source of truth for "does it look right". |
 
 ## Install
 
-1. Copy `Performance.tsx`, `Performance.module.css`, `performanceHelpers.tsx`,
-   and `mockEstimate.ts` into `app/predict/` (or your components dir).
-2. Make sure these are available (they're standard in a PatternFly v5 app):
+1. The implementation is already in `app/predict/`.
+2. Make sure these are available (they're standard in a PatternFly v6 app):
    - `@patternfly/react-core`
    - `@patternfly/react-icons`
 3. Render `<Performance />` from your route. The component is `'use client'`.
-4. Load the fonts (Geist + Geist Mono) in your `layout`/`<head>`:
-   ```html
-   <link rel="preconnect" href="https://fonts.googleapis.com">
-   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-   ```
+4. The root layout loads Red Hat Display, Red Hat Text, and Red Hat Mono via
+   `next/font/google`.
 
 ```tsx
 // app/predict/page.tsx
@@ -43,7 +38,7 @@ fallbacks in the module render an equivalent clean look:
 ```
 --gc-text #151515   --gc-text-2 #3c3f42   --gc-text-3 #54585c
 --gc-bg #fff        --gc-bg-2 #f5f5f5     --gc-bg-3 #e0e0e0
---gc-border #d2d2d2 --gc-link #06c        --gc-red #ee0000
+--gc-border #d2d2d2 --gc-link #06c        --gc-brand-red #ee0000
 --gc-success #3d7317  --gc-warn #f0ab00   --gc-danger #c9190b
 --gc-chart-1..5  (memory bar + scenario accents)
 --gc-font-display / --gc-font-sans / --gc-font-mono
@@ -54,8 +49,8 @@ fallbacks in the module render an equivalent clean look:
 - **Legibility first.** No font-size below 11.5px. No text lighter than
   `--gc-text-2` for any label, value, or detail. `--gc-text-3` is reserved for
   one-word captions only.
-- **Type:** Plus Jakarta Sans (titles + big numbers, 600–700; body),
-  JetBrains Mono (numbers, labels, code).
+- **Type:** Red Hat Display (titles + big numbers), Red Hat Text (body), and
+  Red Hat Mono (numbers, labels, code).
 - **Color:** red `#ee0000` is the logo/brand pop only. Blue `#0066cc` is the
   interactive/primary color. Status uses green/amber/red pips, used sparingly.
 - **Default-first flow:** show three numbers immediately (weights, KV/req, GPUs)

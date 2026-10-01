@@ -13,7 +13,7 @@ its model and GPU options through the `config` property.
 ```html
 <configiq-sizing-widget
   id="sizing"
-  endpoint="/api/configiq"
+  endpoint="/api/recommend"
   timeout-ms="27000"
   heading-level="2"
   theme="dark"
