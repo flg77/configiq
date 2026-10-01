@@ -149,9 +149,9 @@ Use a consistent 4px-based scale:
 }
 
 .cardTitle {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  font-family: "Red Hat Text";
+  font-family: "Red Hat Display";
 }
 
 .cardBody {
@@ -551,7 +551,7 @@ All text inputs should match:
   border-radius: 4px;
   padding: 7px 11px;
   font-size: 14px;
-  font-family: "Red Hat Display";
+  font-family: "Red Hat Text";
   background: var(--bg-page);
   box-sizing: border-box;
 }

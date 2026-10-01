@@ -152,18 +152,18 @@ Add to `app/globals.css` or `app/theme.css`:
    ACCORDION ANIMATION
    ═══════════════════════════════════════════ */
 
-.pf-v6-c-accordion__expanded-content {
+.pf-v6-c-accordion__expandable-content {
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.3s ease;
   overflow: hidden;
 }
 
-.pf-v6-c-accordion__expanded-content[hidden] {
+.pf-v6-c-accordion__expandable-content[hidden] {
   max-height: 0;
   opacity: 0;
 }
 
-.pf-v6-c-accordion__expanded-content:not([hidden]) {
+.pf-v6-c-accordion__expandable-content:not([hidden]) {
   max-height: 2000px;
   opacity: 1;
 }

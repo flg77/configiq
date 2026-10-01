@@ -202,19 +202,24 @@ Do not install Tailwind, shadcn/ui, Material UI, or any other component library.
 Use the established CSS variables — do not introduce arbitrary hex colors:
 
 ```css
-/* Colors */
+/* Current theme tokens */
 var(--gc-brand-red)     /* #ee0000 — brand red, logo only */
 var(--gc-link)          /* #0066cc — interactive elements */
-var(--rh-red-50)       /* #ffeaea — selected state backgrounds */
-var(--rh-gray-95)      /* #151515 — primary text */
-var(--rh-gray-50)      /* #6a6e73 — secondary text */
-var(--rh-gray-20)      /* #d2d2d2 — borders */
-var(--rh-gray-10)      /* #f0f0f0 — page background */
+var(--gc-text)          /* #151515 — primary text */
+var(--gc-text-2)        /* #3c3f42 — body and secondary text */
+var(--border)           /* #d2d2d2 — borders */
 
-/* Fonts */
-var(--font-display)    /* Red Hat Display — headings */
-var(--font-body)       /* Red Hat Text — body copy */
-var(--font-mono)       /* Red Hat Mono — code, labels */
+/* Compatibility tokens */
+var(--rh-red-50)        /* #ffeaea — selected state backgrounds */
+var(--rh-gray-95)       /* #151515 — primary text */
+var(--rh-gray-50)       /* #6a6e73 — legacy secondary text */
+var(--rh-gray-20)       /* #d2d2d2 — borders */
+var(--rh-gray-10)       /* #f0f0f0 — page background */
+
+/* Font variables */
+var(--font-display)     /* Red Hat Display — headings */
+var(--font-body)        /* Red Hat Text — body copy */
+var(--font-mono)        /* Red Hat Mono — code, labels */
 ```
 
 Font weights: use `400` (regular) and `500` (medium) for body text. `700` bold is for Display headings only.
@@ -254,7 +259,8 @@ Before marking a PR ready for review:
 - [ ] New GPU math is in AISimulators, not in a component or `lib/gpu-math/`
 - [ ] No new third-party UI libraries added to `package.json`
 - [ ] All UI text uses sentence case
-- [ ] No hardcoded hex colors — use `--rh-*` CSS variables
+- [ ] No arbitrary hardcoded hex colors — use established `--gc-*`, `--rh-*`, or
+      `--font-*` variables as appropriate
 
 ---
 
