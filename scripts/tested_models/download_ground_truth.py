@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -21,6 +22,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if not re.fullmatch(r"[0-9a-f]{40}", args.revision):
+        raise SystemExit("--revision must be a full 40-character lowercase Hugging Face commit SHA")
     snapshot = Path(snapshot_download(
         repo_id=args.repo_id,
         repo_type="dataset",
@@ -32,11 +35,14 @@ def main() -> int:
     datasets_dir.mkdir(parents=True, exist_ok=True)
     pairs = []
     for pair in source_manifest.get("pairs", []):
+        pair_id = pair.get("id")
+        if not isinstance(pair_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", pair_id):
+            raise ValueError(f"invalid filesystem pair id: {pair_id!r}")
         pair_path = Path(pair["path"])
         if pair_path.is_absolute() or ".." in pair_path.parts:
             raise ValueError(f"invalid dataset path: {pair_path}")
         source_path = snapshot / pair_path
-        destination = datasets_dir / f"{pair['id']}.parquet"
+        destination = datasets_dir / f"{pair_id}.parquet"
         shutil.copy2(source_path, destination)
         pairs.append({**pair, "path": str(destination)})
     manifest = {"schema_version": 1, "source": args.repo_id, "revision": args.revision, "pairs": pairs}

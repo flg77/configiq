@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -22,6 +23,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def prepare(manifest_path: Path, datasets_dir: Path, output_dir: Path) -> dict:
+    manifest_path = manifest_path.resolve()
+    datasets_dir = datasets_dir.resolve()
+    output_dir = output_dir.resolve()
+    if output_dir == manifest_path or output_dir == datasets_dir:
+        raise ValueError("output directory must not equal an input path")
+    if output_dir.is_relative_to(manifest_path) or output_dir.is_relative_to(datasets_dir):
+        raise ValueError("output directory must not be inside an input path")
+    if manifest_path.is_relative_to(output_dir) or datasets_dir.is_relative_to(output_dir):
+        raise ValueError("output directory must not contain an input path")
     source = json.loads(manifest_path.read_text())
     if output_dir.exists():
         shutil.rmtree(output_dir)
@@ -29,6 +39,8 @@ def prepare(manifest_path: Path, datasets_dir: Path, output_dir: Path) -> dict:
     pairs = []
     for pair in source.get("pairs", []):
         pair_id = pair["id"]
+        if not isinstance(pair_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", pair_id):
+            raise ValueError(f"invalid filesystem pair id: {pair_id!r}")
         source_path = datasets_dir / f"{pair_id}.parquet"
         if not source_path.is_file():
             raise FileNotFoundError(source_path)
@@ -63,6 +75,7 @@ def main() -> int:
         repo_type="dataset",
         folder_path=str(args.output_dir),
         revision=args.revision,
+        delete_patterns=["pairs/**", "manifest.json"],
         commit_message=f"Publish {len(manifest['pairs'])} ground-truth model hardware pairs",
     )
     print(f"published {len(manifest['pairs'])} pairs to {args.repo_id}")
