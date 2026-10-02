@@ -51,3 +51,24 @@ def test_publish_rejects_empty_manifest_before_cleanup(tmp_path) -> None:
     with pytest.raises(ValueError, match="at least one pair"):
         publish_ground_truth.prepare(manifest, datasets, output)
     assert marker.read_text() == "keep"
+
+
+def test_publish_copies_each_source_pair_into_output_manifest(tmp_path) -> None:
+    manifest = tmp_path / "manifest.json"
+    datasets = tmp_path / "datasets"
+    output = tmp_path / "output"
+    datasets.mkdir()
+    (datasets / "model__h200.parquet").write_bytes(b"parquet")
+    manifest.write_text(json.dumps({
+        "pairs": [{
+            "id": "model__h200",
+            "model_id": "org/model",
+            "accelerator": "H200",
+            "records": 1,
+        }],
+    }))
+
+    result = publish_ground_truth.prepare(manifest, datasets, output)
+
+    assert result["pairs"][0]["id"] == "model__h200"
+    assert (output / "pairs/model__h200/ground_truth.parquet").read_bytes() == b"parquet"
