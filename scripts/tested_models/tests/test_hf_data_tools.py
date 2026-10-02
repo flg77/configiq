@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import download_ground_truth
@@ -162,3 +163,34 @@ def test_publish_validates_all_pairs_before_replacing_output(tmp_path) -> None:
     with pytest.raises(FileNotFoundError):
         publish_ground_truth.prepare(manifest, datasets, output)
     assert marker.read_text() == "keep"
+
+
+def test_download_rolls_back_dataset_when_manifest_commit_fails(tmp_path) -> None:
+    datasets = tmp_path / "datasets"
+    staging = tmp_path / "datasets.staging"
+    manifest = tmp_path / "dataset-manifest.json"
+    staged_manifest = tmp_path / ".dataset-manifest.json.staging"
+    datasets.mkdir()
+    staging.mkdir()
+    (datasets / "old.parquet").write_bytes(b"old")
+    (staging / "new.parquet").write_bytes(b"new")
+    manifest.write_text("old manifest")
+    staged_manifest.write_text("new manifest")
+
+    def fail_new_manifest(source, destination):
+        if Path(source) == staged_manifest:
+            raise OSError("injected manifest commit failure")
+        os.replace(source, destination)
+
+    with pytest.raises(OSError, match="injected"):
+        download_ground_truth._commit_dataset(
+            staging,
+            datasets,
+            staged_manifest,
+            manifest,
+            replace_file=fail_new_manifest,
+        )
+
+    assert (datasets / "old.parquet").read_bytes() == b"old"
+    assert not (datasets / "new.parquet").exists()
+    assert manifest.read_text() == "old manifest"

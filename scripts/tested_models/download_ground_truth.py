@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 from pathlib import Path
@@ -22,6 +23,56 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--revision", required=True)
     parser.add_argument("--output-dir", type=Path, default=Path("data/tested-models"))
     return parser.parse_args()
+
+
+def _commit_dataset(
+    staging: Path,
+    datasets_dir: Path,
+    staged_manifest: Path,
+    manifest_path: Path,
+    replace_file=os.replace,
+) -> None:
+    """Replace dataset files and manifest together, restoring both on failure."""
+    datasets_backup = datasets_dir.with_name(f".{datasets_dir.name}.backup")
+    manifest_backup = manifest_path.with_name(f".{manifest_path.name}.backup")
+    if datasets_backup.exists() or manifest_backup.exists():
+        raise RuntimeError("previous dataset backup exists; inspect it before retrying")
+
+    datasets_backed_up = False
+    manifest_backed_up = False
+    datasets_installed = False
+    manifest_installed = False
+    try:
+        if datasets_dir.exists():
+            datasets_dir.rename(datasets_backup)
+            datasets_backed_up = True
+        if manifest_path.exists():
+            replace_file(manifest_path, manifest_backup)
+            manifest_backed_up = True
+        staging.rename(datasets_dir)
+        datasets_installed = True
+        replace_file(staged_manifest, manifest_path)
+        manifest_installed = True
+    except Exception:
+        if datasets_installed and datasets_dir.exists():
+            shutil.rmtree(datasets_dir)
+        if datasets_backed_up:
+            datasets_backup.rename(datasets_dir)
+        if manifest_installed and manifest_path.exists():
+            manifest_path.unlink()
+        if manifest_backed_up:
+            replace_file(manifest_backup, manifest_path)
+        raise
+    else:
+        if datasets_backup.exists():
+            shutil.rmtree(datasets_backup)
+        if manifest_backup.exists():
+            manifest_backup.unlink()
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+        if staged_manifest.exists():
+            staged_manifest.unlink()
 
 
 def main() -> int:
@@ -74,8 +125,12 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     datasets_dir = args.output_dir / "datasets"
     staging = args.output_dir / "datasets.staging"
+    manifest_path = args.output_dir / "dataset-manifest.json"
+    staged_manifest = args.output_dir / ".dataset-manifest.json.staging"
     if staging.exists():
         shutil.rmtree(staging)
+    if staged_manifest.exists():
+        staged_manifest.unlink()
     staging.mkdir(parents=True)
     pairs = []
     for pair, source_path in planned_pairs:
@@ -83,13 +138,11 @@ def main() -> int:
         destination = staging / f"{pair_id}.parquet"
         shutil.copy2(source_path, destination)
         pairs.append({**pair, "path": str(destination)})
-    if datasets_dir.exists():
-        shutil.rmtree(datasets_dir)
-    staging.rename(datasets_dir)
     for pair in pairs:
         pair["path"] = str(datasets_dir / f"{pair['id']}.parquet")
     manifest = {"schema_version": 1, "source": args.repo_id, "revision": args.revision, "pairs": pairs}
-    (args.output_dir / "dataset-manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    staged_manifest.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    _commit_dataset(staging, datasets_dir, staged_manifest, manifest_path)
     print(f"downloaded {len(pairs)} ground-truth pairs from {args.repo_id}@{args.revision}")
     return 0
 
