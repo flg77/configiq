@@ -44,8 +44,9 @@ The image also exposes the simulator CLIs at stable paths:
 /usr/local/bin/blis
 ```
 
-BLIS is copied from the pinned BLIS image during the multi-stage build. Its
-catalog is based on the pinned upstream BLIS catalog, with the packaged
+BLIS v0.9.2 is copied from an immutable image digest during the multi-stage
+build. Its catalog is based on BLIS catalog release 0.1.1 at pinned commit
+`6fe4664576bc43d601bba6619aca4fbb42c5087b`, with the packaged
 AISimulate model configs exported into the catalog's `models/` namespace. BLIS
 hardware facts are not modified by this export. The image sets
 `BLIS_CATALOG=/opt/blis/catalog`; callers should still pass `--catalog` for
