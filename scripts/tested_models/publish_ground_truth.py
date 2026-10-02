@@ -33,11 +33,14 @@ def prepare(manifest_path: Path, datasets_dir: Path, output_dir: Path) -> dict:
     if manifest_path.is_relative_to(output_dir) or datasets_dir.is_relative_to(output_dir):
         raise ValueError("output directory must not contain an input path")
     source = json.loads(manifest_path.read_text())
+    pairs = source.get("pairs")
+    if not isinstance(pairs, list) or not pairs:
+        raise ValueError("ground-truth manifest must contain at least one pair")
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True)
     pairs = []
-    for pair in source.get("pairs", []):
+    for pair in pairs:
         pair_id = pair["id"]
         if not isinstance(pair_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", pair_id):
             raise ValueError(f"invalid filesystem pair id: {pair_id!r}")

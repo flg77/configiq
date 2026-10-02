@@ -36,3 +36,18 @@ def test_publish_rejects_output_input_overlap(tmp_path) -> None:
     manifest.write_text(json.dumps({"pairs": []}))
     with pytest.raises(ValueError, match="input path"):
         publish_ground_truth.prepare(manifest, datasets, tmp_path)
+
+
+def test_publish_rejects_empty_manifest_before_cleanup(tmp_path) -> None:
+    manifest = tmp_path / "manifest.json"
+    datasets = tmp_path / "datasets"
+    output = tmp_path / "output"
+    datasets.mkdir()
+    output.mkdir()
+    marker = output / "must-survive"
+    marker.write_text("keep")
+    manifest.write_text(json.dumps({"pairs": []}))
+
+    with pytest.raises(ValueError, match="at least one pair"):
+        publish_ground_truth.prepare(manifest, datasets, output)
+    assert marker.read_text() == "keep"
