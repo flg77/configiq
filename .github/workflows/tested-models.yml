@@ -20,7 +20,6 @@ jobs:
     if: github.repository == 'redhat-performance/configiq'
     permissions:
       contents: read
-      actions: write
 
     steps:
       - name: Check out source
@@ -40,7 +39,6 @@ jobs:
 
       - name: Download pinned ground-truth dataset
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           TESTED_DATASET_REVISION: ${{ vars.TESTED_DATASET_REVISION }}
         run: |
           test -n "$TESTED_DATASET_REVISION"
