@@ -57,10 +57,21 @@ The scripts are intentionally kept independent of the ConfigIQ web runtime so
 they can run in GitHub Actions against refreshed benchmark data.
 
 The repeatable GitHub workflow is `.github/workflows/tested-models.yml`. It
-reads `PERF_DATA_API_URL` from a repository secret, generates all datasets and
-artifacts, and uploads only the sanitized registry/Triton/dashboard bundle.
+downloads a pinned revision of the public
+`redhat-performance/configiq-performance-data` Hugging Face dataset, generates
+all artifacts, and uploads only the sanitized registry/Triton/dashboard bundle.
 Raw parquet, split data, source identifiers, and training work files are not
 uploaded by the workflow.
+
+To publish a new sanitized ground-truth revision after running extraction from
+the approved source environment:
+
+```bash
+uv run --group tested-models python scripts/tested_models/publish_ground_truth.py
+```
+
+Set the GitHub repository variable `TESTED_DATASET_REVISION` to the resulting
+Hugging Face commit before starting the automation workflow.
 
 ## Stage 5: performance envelope classifiers
 
