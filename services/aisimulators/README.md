@@ -37,6 +37,20 @@ docker run --rm -p 7860:7860 aisimulators
 curl http://localhost:7860/systems
 ```
 
+The image also exposes the simulator CLIs at stable paths:
+
+```text
+/usr/local/bin/aisimulate
+/usr/local/bin/blis
+```
+
+BLIS is copied from the pinned BLIS image during the multi-stage build. Its
+catalog is based on the pinned upstream BLIS catalog, with the packaged
+AISimulate model configs exported into the catalog's `models/` namespace. BLIS
+hardware facts are not modified by this export. The image sets
+`BLIS_CATALOG=/opt/blis/catalog`; callers should still pass `--catalog` for
+explicit, reproducible runs.
+
 The `aisimulate` SDK wheel is pinned in `pyproject.toml` by exact fork-release
 download URL (the `aisimulate @ …` entry), so the image always installs that
 exact artifact — no build args. To move to a newer SDK build, update that URL and
