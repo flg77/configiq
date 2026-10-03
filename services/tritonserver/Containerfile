@@ -13,6 +13,8 @@ LABEL ai.configiq.vllm-backend.commit=${VLLM_BACKEND_COMMIT}
 
 USER 0
 
+COPY patches/vllm-030-metrics.patch /tmp/vllm-030-metrics.patch
+
 # The standard Triton image already contains FIL. Install vLLM into an isolated
 # target directory because vLLM 0.30 and Triton use incompatible pydantic/numpy
 # requirements. The backend subprocess receives this environment via PYTHONPATH.
@@ -23,6 +25,7 @@ RUN rm -rf /opt/vllm-site \
     && python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/triton-inference-server/vllm_backend/archive/${VLLM_BACKEND_COMMIT}.tar.gz', '/tmp/vllm_backend.tar.gz')" \
     && tar -xzf /tmp/vllm_backend.tar.gz --strip-components=1 -C /tmp/vllm_backend \
     && cp -a /tmp/vllm_backend/src/. /opt/tritonserver/backends/vllm/ \
+    && patch -p1 -d /opt/tritonserver/backends/vllm < /tmp/vllm-030-metrics.patch \
     && rm -rf /tmp/vllm_backend /tmp/vllm_backend.tar.gz
 
 ENV PYTHONPATH=/opt/vllm-site
