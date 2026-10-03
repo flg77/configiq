@@ -38,6 +38,7 @@ output [{{ name: "output__0" data_type: TYPE_FP32 dims: [ 1 ] }}]
 instance_group [{{ kind: KIND_AUTO }}]
 parameters: {{ key: "model_type" value: {{ string_value: "xgboost_json" }} }}
 parameters: {{ key: "is_classifier" value: {{ string_value: "true" }} }}
+parameters: {{ key: "threshold" value: {{ string_value: "0.5" }} }}
 dynamic_batching {{}}
 ''')
         count += 1
