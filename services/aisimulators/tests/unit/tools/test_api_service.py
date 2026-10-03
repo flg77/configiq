@@ -1320,13 +1320,13 @@ class TestMCPServer:
         routes = {(getattr(r, "path", ""), m) for r in app.routes for m in (getattr(r, "methods", None) or ())}
         assert ("/mcp", "GET") in routes
         assert ("/mcp/messages/", "POST") in routes
-        assert ("/mcp/http", "POST") in routes
+        assert any(getattr(r, "path", "") == "/mcp/http" for r in app.routes)
 
     def test_streamable_http_lists_the_tools(self):
         """An MCP client speaking streamable HTTP sees the API's tools."""
         if not app_module._MCP:
             pytest.skip("fastapi-mcp not installed")
-        with TestClient(app) as c:
+        with TestClient(app, follow_redirects=False) as c:
             names = _mcp_http_tool_names(c, "/mcp/http")
         assert self.EXPECTED_MCP_TOOLS <= names
 

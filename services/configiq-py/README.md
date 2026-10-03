@@ -39,7 +39,8 @@ except ImportError:
     _OBS = False
 
 # MCP (optional) — mount AFTER the last route: fastapi-mcp builds its tool
-# list from the routes that exist when mount() runs.
+# list from the routes that exist when mount() runs. The shared helper mounts
+# SSE at /mcp and Streamable HTTP at /mcp/http.
 try:
     from configiq import mcp as mcp_support
     _MCP = True
