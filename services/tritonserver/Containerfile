@@ -16,6 +16,7 @@ USER 0
 # The standard Triton image already contains FIL. Add the pinned vLLM runtime
 # and the matching Triton Python backend without replacing Triton's FIL files.
 RUN python3 -m pip install --no-cache-dir "vllm==${VLLM_VERSION}" \
+    && python3 -m pip install --no-cache-dir "pydantic==2.10.6" "numpy<2" \
     && mkdir -p /tmp/vllm_backend /opt/tritonserver/backends/vllm \
     && python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com/triton-inference-server/vllm_backend/archive/${VLLM_BACKEND_COMMIT}.tar.gz', '/tmp/vllm_backend.tar.gz')" \
     && tar -xzf /tmp/vllm_backend.tar.gz --strip-components=1 -C /tmp/vllm_backend \
@@ -26,6 +27,6 @@ RUN python3 -m pip install --no-cache-dir "vllm==${VLLM_VERSION}" \
 # absent. The L4 runtime check is performed on the deployment host.
 RUN test -f /opt/tritonserver/backends/fil/libtriton_fil.so \
     && test -f /opt/tritonserver/backends/vllm/model.py \
-    && python3 -c "import inspect, vllm; from vllm.engine.arg_utils import AsyncEngineArgs; from vllm.model_executor.models.registry import ModelRegistry; assert vllm.__version__.startswith('${VLLM_VERSION}'); assert 'reasoning_parser' in inspect.signature(AsyncEngineArgs).parameters; assert ModelRegistry.is_registered('K2HorizonForCausalLM')"
+    && python3 -c "import inspect, vllm; from vllm.engine.arg_utils import AsyncEngineArgs; from vllm.model_executor.models.registry import ModelRegistry; assert vllm.__version__.startswith('${VLLM_VERSION}'); assert 'reasoning_parser' in inspect.signature(AsyncEngineArgs).parameters; assert 'K2HorizonForCausalLM' in ModelRegistry.get_supported_archs()"
 
 USER 1000
