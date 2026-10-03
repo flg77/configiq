@@ -32,10 +32,14 @@ def safe_name(model_id: str) -> str:
 def is_hf_config(config: object) -> bool:
     if not isinstance(config, dict):
         return False
+    def has_layer_evidence(candidate: dict) -> bool:
+        blocks = candidate.get("layers_block_type")
+        return "num_hidden_layers" in candidate or "hidden_size" in candidate or (isinstance(blocks, list) and bool(blocks))
+
+    if has_layer_evidence(config):
+        return True
     text_config = config.get("text_config")
-    candidate = text_config if isinstance(text_config, dict) else config
-    blocks = candidate.get("layers_block_type")
-    return "num_hidden_layers" in candidate or "hidden_size" in candidate or (isinstance(blocks, list) and bool(blocks))
+    return isinstance(text_config, dict) and has_layer_evidence(text_config)
 
 
 def export_catalog(

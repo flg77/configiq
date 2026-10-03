@@ -65,3 +65,12 @@ def test_export_preserves_reviewed_upstream_preference(tmp_path) -> None:
 
 def test_safe_name_matches_blis_lowercase_catalog_resolution() -> None:
     assert safe_name("Qwen/Qwen3-32B-FP8") == "qwen3-32b-fp8"
+
+
+def test_export_accepts_top_level_hf_config_with_empty_text_config(tmp_path) -> None:
+    source = tmp_path / "source"
+    source.mkdir()
+    config = {**hf_config(), "text_config": {}}
+    (source / "Org--Model_config.json").write_text(json.dumps(config))
+
+    assert export_catalog(tmp_path / "catalog", source, "1.2.3") == 1
