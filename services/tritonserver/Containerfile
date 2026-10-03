@@ -28,7 +28,8 @@ RUN rm -rf /opt/vllm-site \
     && patch -p1 -d /opt/tritonserver/backends/vllm < /tmp/vllm-030-metrics.patch \
     && rm -rf /tmp/vllm_backend /tmp/vllm_backend.tar.gz
 
-ENV PYTHONPATH=/opt/vllm-site
+ENV PATH=/opt/vllm-site/bin:${PATH} \
+    PYTHONPATH=/opt/vllm-site
 
 # Fail the image build if either backend or the intended K2 architecture is
 # absent. The L4 runtime check is performed on the deployment host.
