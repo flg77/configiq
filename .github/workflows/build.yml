@@ -44,6 +44,11 @@ jobs:
             file: services/aicostings/Containerfile
             image: ghcr.io/redhat-performance/aicostings
             build-args: ""
+          - name: tritonserver
+            context: services/tritonserver
+            file: services/tritonserver/Containerfile
+            image: ghcr.io/redhat-performance/tritonserver
+            build-args: ""
 
     steps:
       - uses: actions/checkout@v4
